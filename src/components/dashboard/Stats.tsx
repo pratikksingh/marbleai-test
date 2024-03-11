@@ -1,11 +1,7 @@
 import React, { useState } from "react";
 import { KpiCard } from "./KpiCard";
 import { IChartDatum } from "../../interfaces";
-import {
-  CurrencyDollarIcon,
-  ShoppingCartIcon,
-  UserGroupIcon,
-} from "@heroicons/react/24/outline";
+
 import { GetListResponse } from "@refinedev/core";
 import BottomChev from "../../assets/BottomChev.svg";
 import { ActiveCard } from "../../pages/dashboard";
@@ -18,12 +14,14 @@ type TStats = {
   dailyRevenue?: GetListResponse<IChartDatum>;
   dailyOrders?: GetListResponse<IChartDatum>;
   newCustomers?: GetListResponse<IChartDatum>;
+  newCustomersConversion?: GetListResponse<IChartDatum>;
   setShowChart: (value: boolean) => void;
   onCardSelected: (card: ActiveCard) => void;
 };
 
 const Stats = ({
   dailyRevenue,
+  newCustomersConversion,
   dailyOrders,
   newCustomers,
   setShowChart,
@@ -90,7 +88,7 @@ const Stats = ({
           setSelectedCard={() => onCardSelected("CONVERSION_RATE")}
           title="Conversion rate"
           icon={<p>%</p>}
-          data={newCustomers}
+          data={newCustomersConversion}
           colors={{
             stroke: "rgb(76, 175, 80)",
             fill: selectedCard === "CONVERSION_RATE" ? "#F1F1F1" : "white",

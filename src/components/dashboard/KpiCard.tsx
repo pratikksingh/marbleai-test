@@ -1,8 +1,10 @@
 import React, { useCallback, useState } from "react";
 import PENCIL from "../../assets/pencil.svg";
+import GRAPHICON from "../../assets/graphIcon.svg";
+import QUESTIONMARK from "../../assets/questionMark.svg";
 import Profit from "../../assets/profit.svg";
 import SkeletonButton from "antd/es/skeleton/Button";
-import { ActionList, AppProvider, Popover } from "@shopify/polaris";
+import { Dropdown, Popover } from "antd";
 
 type TKpiCardProps = {
   title: string;
@@ -37,14 +39,83 @@ export const KpiCard = ({
   const percent = total > trend ? ` ${calc}%` : `- ${calc}%`;
   const [popoverActive, setPopoverActive] = useState(true);
 
-  console.log("popoverActive", popoverActive);
-
   const togglePopoverActive = useCallback(
     () => setPopoverActive((popoverActive) => !popoverActive),
     []
   );
 
-  console.log("selectedCard", selectedCard);
+  const content = (
+    <div>
+      <p>Your online store's traffic volume, shown in sessions.</p>
+    </div>
+  );
+
+  const items = [
+    {
+      label: (
+        <div className="dropdown-item">
+          <img alt="graphicon" src={GRAPHICON} />
+          <p>Average Order Value</p>
+          <img className="questionMark" alt="questionmark" src={QUESTIONMARK} />
+        </div>
+      ),
+      key: "1",
+    },
+    {
+      label: (
+        <div className="dropdown-item">
+          <img alt="graphicon" src={GRAPHICON} />
+          <p>Conversion rate</p>
+          <img className="questionMark" alt="questionmark" src={QUESTIONMARK} />
+        </div>
+      ),
+      key: "2",
+    },
+    {
+      label: (
+        <div className="dropdown-item">
+          <img alt="graphicon" src={GRAPHICON} />
+          <p>Gross Sales</p>
+          <img className="questionMark" alt="questionmark" src={QUESTIONMARK} />
+        </div>
+      ),
+      key: "3",
+    },
+    {
+      label: (
+        <div className="dropdown-item">
+          <img alt="graphicon" src={GRAPHICON} />
+          <p>Net return value</p>
+          <img className="questionMark" alt="questionmark" src={QUESTIONMARK} />
+        </div>
+      ),
+      key: "4",
+    },
+    {
+      label: (
+        <div className="dropdown-item">
+          <img alt="graphicon" src={GRAPHICON} />
+          <p>Store search conversion</p>
+          <img className="questionMark" alt="questionmark" src={QUESTIONMARK} />
+        </div>
+      ),
+      key: "5",
+    },
+    {
+      label: (
+        <div className="dropdown-item">
+          <img alt="graphicon" src={GRAPHICON} />
+          <p>Return rate</p>
+          <img className="questionMark" alt="questionmark" src={QUESTIONMARK} />
+        </div>
+      ),
+      key: "6",
+    },
+  ];
+
+  const menuProps = {
+    items,
+  };
 
   return (
     <div
@@ -68,18 +139,35 @@ export const KpiCard = ({
         />
       ) : (
         <div className="stat-title text-l">
-          <span
-            onMouseEnter={togglePopoverActive}
-            style={{ borderBottom: "1px dashed #CCCCCC" }}
+          <Popover
+            placement="bottomLeft"
+            content={content}
+            title={title}
+            trigger="hover"
           >
-            {title}
-          </span>
+            <span
+              onMouseEnter={togglePopoverActive}
+              style={{ borderBottom: "1px dashed #CCCCCC" }}
+            >
+              {title}
+            </span>
+          </Popover>
 
           <div
             className="stat-figure text-secondary"
             style={{ color: colors?.fill }}
           >
-            {isIcon && <img src={PENCIL} alt="pencil-icon" />}
+            {isIcon && (
+              <>
+                <Dropdown
+                  trigger={"click"}
+                  placement="bottomLeft"
+                  menu={menuProps}
+                >
+                  <img src={PENCIL} alt="pencil-icon" />
+                </Dropdown>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -99,7 +187,7 @@ export const KpiCard = ({
         ) : (
           <>
             {title !== "Conversion rate" && icon}
-            {formatTotal(total)}
+            {formatTotal(total) || 0}
             {title === "Conversion rate" && icon}
 
             <span className="mx-1 text-l font-bold">
@@ -108,7 +196,7 @@ export const KpiCard = ({
                 src={Profit}
                 style={{ rotate: total > trend ? "0deg" : "180deg" }}
               />
-              <span>{percent}</span>
+              <span>{percent || 0}</span>
             </span>
           </>
         )}

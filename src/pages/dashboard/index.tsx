@@ -1,34 +1,26 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { CrudFilter, useList } from "@refinedev/core";
 import dayjs from "dayjs";
 import Stats from "../../components/dashboard/Stats";
 import { ResponsiveAreaChart } from "../../components/dashboard/ResponsiveAreaChart";
 import { ResponsiveBarChart } from "../../components/dashboard/ResponsiveBarChart";
 import { IChartDatum, TTab } from "../../interfaces";
-import { NameType } from "recharts/types/component/DefaultTooltipContent";
 import { PolarisVizLineChart } from "../../components/dashboard/PolarisVizLineChart";
 import { DatePicker } from "antd";
-import {
-  SkeletonPage,
-  Layout,
-  LegacyCard,
-  SkeletonBodyText,
-  TextContainer,
-  SkeletonDisplayText,
-} from "@shopify/polaris";
+
 const { RangePicker } = DatePicker;
-const filters: CrudFilter[] = [
-  {
-    field: "start",
-    operator: "eq",
-    value: dayjs()?.subtract(7, "days")?.startOf("day"),
-  },
-  {
-    field: "end",
-    operator: "eq",
-    value: dayjs().startOf("day"),
-  },
-];
+// const filters: CrudFilter[] = [
+//   {
+//     field: "start",
+//     operator: "eq",
+//     value: dayjs()?.subtract(7, "days")?.startOf("day"),
+//   },
+//   {
+//     field: "end",
+//     operator: "eq",
+//     value: dayjs().startOf("day"),
+//   },
+// ];
 
 export type ActiveCard =
   | "ONLINE_STORE_SESSIONS"
@@ -176,7 +168,7 @@ export const Dashboard: React.FC = () => {
     ],
   });
 
-  const useMemoizedChartData = (d: any) => {
+  const useMemoizedChartData = (d: any, title?: string) => {
     return useMemo(() => {
       return d?.data?.data?.map((item: IChartDatum) => ({
         key: new Intl.DateTimeFormat("en-US", {
@@ -189,9 +181,36 @@ export const Dashboard: React.FC = () => {
     }, [d]);
   };
 
+  const conversionRateData = (originalData: any) => {
+    const conversionRateData = useMemo(() => {
+      const convertData = (originalData) => {
+        return {
+          ...originalData,
+
+          data: {
+            ...originalData?.data,
+            total: originalData?.data?.total / 2,
+            trend: originalData?.data?.trend / 2,
+            data: originalData?.data?.data.map((detail) => ({
+              ...detail,
+              value: (detail.value / Math.random()) * 100,
+            })),
+          },
+        };
+      };
+
+      return convertData(originalData);
+    }, [originalData]);
+
+    return conversionRateData;
+  };
   const memoizedRevenueData = useMemoizedChartData(dailyRevenue);
   const memoizedOrdersData = useMemoizedChartData(dailyOrders);
   const memoizedNewCustomersData = useMemoizedChartData(newCustomers);
+
+  const memoizedNewCustomersDataForConversion = useMemoizedChartData(
+    conversionRateData(newCustomers)
+  );
 
   const memoizedRevenueHistoricalData = useMemoizedChartData(
     dailyRevenueHistorical
@@ -199,8 +218,13 @@ export const Dashboard: React.FC = () => {
   const memoizedOrdersHistoricalData = useMemoizedChartData(
     dailyOrdersHistorical
   );
+
   const memoizedNewCustomersHistoricalData = useMemoizedChartData(
     newCustomersHistorical
+  );
+
+  const memoizedNewCustomersHistoricalDataForConversion = useMemoizedChartData(
+    conversionRateData(newCustomersHistorical)
   );
 
   const tabs: TTab[] = [
@@ -293,12 +317,12 @@ export const Dashboard: React.FC = () => {
       ],
       CONVERSION_RATE: [
         {
-          data: memoizedNewCustomersData,
+          data: memoizedNewCustomersDataForConversion,
           color: "#4c9dd5",
           shape: "line",
         },
         {
-          data: memoizedNewCustomersHistoricalData,
+          data: memoizedNewCustomersHistoricalDataForConversion,
           color: "#4c9dd5",
           shape: "line",
           isComparison: true,
@@ -327,6 +351,7 @@ export const Dashboard: React.FC = () => {
   const polarisData = getConfig(selectedCard);
 
   const dateChangeHandler = (dates?: any) => {
+    getLoadingState(selectedCard);
     setSelectedDates(dates);
     const formattedDates = dates?.map((date: Date) =>
       dayjs(date).format("MMM D, YYYY")
@@ -340,12 +365,17 @@ export const Dashboard: React.FC = () => {
         onChange={dateChangeHandler}
         defaultValue={selectedDates}
         style={{ marginBottom: 10 }}
+        disabledDate={(current) => {
+          // Disable dates after today
+          return current && current > dayjs().endOf("day");
+        }}
       />
       <Stats
         loading={isLoading}
         dailyRevenue={dailyRevenue}
         dailyOrders={dailyOrders}
         newCustomers={newCustomers}
+        newCustomersConversion={conversionRateData(newCustomers)}
         setShowChart={setShowChart}
         showChart={showChart}
         selectedCard={selectedCard}
